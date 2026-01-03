@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Dashboard</title>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Segoe UI, sans-serif;
+}
+
+body {
+  background: #f4f6fb;
+}
+
+/* ===== FIXED SIDEBAR ===== */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 240px;
+  height: 100vh;
+  background: linear-gradient(180deg, #5b6cff, #7a5cff);
+  padding: 20px;
+  color: white;
+}
+
+.sidebar a {
+  display: block;
+  color: white;
+  text-decoration: none;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.sidebar a:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+/* ===== MAIN CONTENT ===== */
+.main {
+  margin-left: 240px;
+  padding: 30px;
+}
+
+.header {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.card-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+}
+
+.card h3 {
+  color: #4f46e5;
+}
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+  <a href="index.html"><h2>Learn Flow</h2></a>
+  <a href="index.html">Dashboard</a>
+  <a href="upload.html">Upload Notes</a>
+  <a href="flashcards.html">Flashcards</a> 
+  <a href="quiz.html">Quiz</a>
+  <a href="tasks.html">Tasks</a>
+</div>
+
+<div class="main">
+  <div class="header">Dashboard</div>
+
+  <div class="card-container">
+    <div class="card">
+      <h3>📄 Notes Uploaded</h3>
+      <p id="notesCount">0 PDFs</p>
+    </div>
+
+    <div class="card">
+      <h3>🧠 Flashcards</h3>
+      <p id="flashcardCount">0 Cards</p>
+    </div>
+
+    <div class="card">
+      <h3>⏱ Study Streak</h3>
+      <p>—</p>
+    </div>
+
+    <div class="card">
+      <h3>✅ Tasks</h3>
+      <p>—</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===============================
+     REAL DASHBOARD DATA SCRIPT
+     =============================== -->
+<script>
+  // PDFs uploaded
+  const uploads = Number(localStorage.getItem("uploads") || 0);
+
+  // Flashcards count
+  const flashcards = JSON.parse(localStorage.getItem("flashcards")) || [];
+  const flashcardCount = flashcards.length;
+
+  // Update dashboard
+  document.getElementById("notesCount").innerText = uploads + " PDFs";
+  document.getElementById("flashcardCount").innerText = flashcardCount + " Cards";
+</script>
+
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Upload Notes</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI,sans-serif;}
+body{background:#f4f6fb;}
+
+.sidebar{
+  position:fixed;top:0;left:0;
+  width:240px;height:100vh;
+  background:linear-gradient(180deg,#5b6cff,#7a5cff);
+  padding:20px;color:white;
+}
+.sidebar a{display:block;color:white;text-decoration:none;padding:12px;border-radius:8px;margin-bottom:10px;}
+.sidebar a:hover{background:rgba(255,255,255,0.2);}
+
+.main{margin-left:240px;padding:30px;}
+
+.upload-box{
+  background:white;
+  padding:40px;
+  border-radius:12px;
+  border:2px dashed #7a5cff;
+  text-align:center;
+}
+
+button{
+  margin-top:20px;
+  padding:10px 20px;
+  background:#5b6cff;
+  color:white;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+  <a href="index.html"><h2>Learn Flow</h2></a>
+  <a href="index.html">Dashboard</a>
+  <a href="upload.html">Upload Notes</a>
+  <a href="flashcards.html">Flashcards</a>
+  <a href="quiz.html">Quiz</a>
+  <a href="tasks.html">Tasks</a>
+</div>
+
+<div class="main">
+  <h2>Upload Notes</h2><br>
+
+  <div class="upload-box">
+    <p>📄 Upload PDF or Text Files</p><br>
+
+    <input type="file" id="pdfFile"><br>
+
+    <button onclick="uploadPDF()">Upload</button>
+
+    <p id="result" style="margin-top:15px;color:#555;"></p>
+  </div>
+</div>
+
+<script>
+async function uploadPDF() {
+  const fileInput = document.getElementById("pdfFile");
+  const result = document.getElementById("result");
+
+  if (fileInput.files.length === 0) {
+    alert("Please select a PDF file");
+    return;
+  }
+
+  result.innerText = "Uploading and generating flashcards... ⏳";
+
+  const formData = new FormData();
+  formData.append("pdf", fileInput.files[0]);
+
+  try {
+    const response = await fetch("http://localhost:3000/upload-pdf", {
+      method: "POST",
+      body: formData
+    });
+
+    const data = await response.json();
+    console.log("Backend response:", data);
+
+    // ✅ STORE DATA FOR FLASHCARDS
+    localStorage.setItem("flashcards", JSON.stringify(data.flashcards));
+    localStorage.setItem("fullText", data.fullText);
+    localStorage.setItem("nextIndex", data.nextIndex);
+
+    // ✅ NEW: REAL PDF UPLOAD COUNT
+    let uploads = Number(localStorage.getItem("uploads") || 0);
+    localStorage.setItem("uploads", uploads + 1);
+
+    result.innerText = "PDF uploaded successfully ✅ Flashcards generated!";
+  } catch (error) {
+    result.innerText = "Upload failed ❌";
+  }
+}
+</script>
+
+</body>
+</html>

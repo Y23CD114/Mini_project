@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Quiz</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI,sans-serif;}
+body{background:#f4f6fb;}
+
+.sidebar{position:fixed;top:0;left:0;width:240px;height:100vh;
+background:linear-gradient(180deg,#5b6cff,#7a5cff);padding:20px;color:white;}
+.sidebar a{display:block;color:white;text-decoration:none;padding:12px;border-radius:8px;margin-bottom:10px;}
+.sidebar a:hover{background:rgba(255,255,255,0.2);}
+
+.main{margin-left:240px;padding:30px;}
+
+.option{
+  background:white;
+  padding:15px;
+  border-radius:10px;
+  margin-bottom:10px;
+}
+
+button{
+  margin-top:15px;
+  padding:10px 20px;
+  background:#5b6cff;
+  color:white;
+  border:none;
+  border-radius:8px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+  <a href="index.html"><h2>Learn Flow</h2></a>
+  <a href="index.html">Dashboard</a>
+  <a href="upload.html">Upload Notes</a>
+  <a href="flashcards.html">Flashcards</a>
+  <a href="quiz.html">Quiz</a>
+  <a href="tasks.html">Tasks</a>
+</div>
+
+<div class="main">
+  <h2>Quiz</h2><br>
+
+  <div class="option">A. Labeled Data</div>
+  <div class="option">B. Unlabeled Data</div>
+  <div class="option">C. Random Guessing</div>
+  <div class="option">D. Manual Coding</div>
+
+  <button>Next</button>
+</div>
+
+</body>
+</html>
