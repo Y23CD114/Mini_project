@@ -1,34 +1,53 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
 <title>Quiz</title>
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI,sans-serif;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:"Segoe UI",sans-serif;}
 body{background:#f4f6fb;}
 
-.sidebar{position:fixed;top:0;left:0;width:240px;height:100vh;
-background:linear-gradient(180deg,#5b6cff,#7a5cff);padding:20px;color:white;}
-.sidebar a{display:block;color:white;text-decoration:none;padding:12px;border-radius:8px;margin-bottom:10px;}
+.sidebar{
+  position:fixed;top:0;left:0;width:240px;height:100vh;
+  background:linear-gradient(180deg,#5b6cff,#7a5cff);
+  padding:20px;color:white;
+}
+.sidebar a{
+  display:block;color:white;text-decoration:none;
+  padding:12px;border-radius:8px;margin-bottom:10px;
+}
 .sidebar a:hover{background:rgba(255,255,255,0.2);}
 
-.main{margin-left:240px;padding:30px;}
+.main{margin-left:240px;padding:40px;max-width:720px;}
+h2{margin-bottom:10px;}
+
+.setup,.result{
+  background:white;padding:20px;border-radius:12px;margin-bottom:20px;
+}
+
+.count{font-size:14px;color:#555;margin-bottom:6px;}
+.notice{font-size:13px;color:#b45309;margin-bottom:16px;}
+.question{font-size:20px;font-weight:600;margin-bottom:20px;}
 
 .option{
-  background:white;
-  padding:15px;
-  border-radius:10px;
-  margin-bottom:10px;
+  background:white;padding:15px;border-radius:10px;
+  margin-bottom:12px;cursor:pointer;border:2px solid transparent;
 }
+.option:hover{border-color:#5b6cff;}
+.option.correct{background:#dcfce7;border-color:#22c55e;}
+.option.wrong{background:#fee2e2;border-color:#ef4444;}
 
 button{
-  margin-top:15px;
-  padding:10px 20px;
-  background:#5b6cff;
-  color:white;
-  border:none;
-  border-radius:8px;
+  margin-top:15px;padding:12px 24px;
+  background:#5b6cff;color:white;
+  border:none;border-radius:8px;cursor:pointer;
 }
+button.secondary{background:#64748b;}
+button:disabled{background:#a5b4fc;}
+
+.score{margin-top:15px;font-size:14px;color:#555;}
+.actions button{margin-right:10px;}
 </style>
 </head>
 
@@ -44,15 +63,157 @@ button{
 </div>
 
 <div class="main">
-  <h2>Quiz</h2><br>
+  <h2>🧠 Quiz</h2>
 
-  <div class="option">A. Labeled Data</div>
-  <div class="option">B. Unlabeled Data</div>
-  <div class="option">C. Random Guessing</div>
-  <div class="option">D. Manual Coding</div>
+  <!-- SETUP -->
+  <div class="setup" id="setup">
+    <p><strong>Select number of questions:</strong></p><br>
+    <label><input type="radio" name="count" value="5" checked> 5</label>
+    <label><input type="radio" name="count" value="10"> 10</label>
+    <label><input type="radio" name="count" value="15"> 15</label>
+    <label>
+      <input type="radio" name="count" value="custom"> Custom
+      <input type="number" id="customCount" min="1" disabled style="width:80px">
+    </label>
+    <br><br>
+    <button onclick="launchQuiz()">🚀 Launch Quiz</button>
+  </div>
 
-  <button>Next</button>
+  <!-- QUIZ -->
+  <div id="quizArea" style="display:none">
+    <div class="count" id="count"></div>
+    <div class="notice" id="notice"></div>
+    <div class="question" id="question"></div>
+    <div id="options"></div>
+    <button id="nextBtn" onclick="nextQuestion()" disabled>Next</button>
+    <div class="score" id="score"></div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="result" id="result" style="display:none">
+    <h3>🎉 Quiz Completed</h3>
+    <p id="finalSummary"></p>
+
+    <div class="actions">
+      <button onclick="retakeQuiz()">🔁 Retake Quiz</button>
+      <button onclick="launchNewQuiz()">🚀 New Quiz</button>
+      <button class="secondary" onclick="changeCount()">🔢 Change Count</button>
+    </div>
+  </div>
 </div>
+
+<script>
+let quiz=[],index=0,score=0,answered=false,lastCount=5;
+
+const questionEl=document.getElementById("question");
+const optionsEl=document.getElementById("options");
+const scoreEl=document.getElementById("score");
+const nextBtn=document.getElementById("nextBtn");
+const countEl=document.getElementById("count");
+const noticeEl=document.getElementById("notice");
+const quizArea=document.getElementById("quizArea");
+const setup=document.getElementById("setup");
+const result=document.getElementById("result");
+const finalSummary=document.getElementById("finalSummary");
+const customInput=document.getElementById("customCount");
+
+document.querySelectorAll("input[name='count']").forEach(r=>{
+  r.addEventListener("change",()=>customInput.disabled=r.value!=="custom");
+});
+
+async function launchQuiz(){
+  const text=localStorage.getItem("fullText");
+  if(!text)return alert("Upload a PDF first.");
+
+  let selected=document.querySelector("input[name='count']:checked").value;
+  let count=selected==="custom"?Number(customInput.value):Number(selected);
+  if(!count||count<=0)return alert("Invalid count");
+
+  lastCount=count;
+  setup.style.display="none";
+  quizArea.style.display="block";
+  result.style.display="none";
+
+  const res=await fetch("http://localhost:3000/generate-quiz",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({text,count})
+  });
+
+  const data=await res.json();
+  quiz=data.quiz||[];
+  index=0;score=0;
+
+  renderQuestion();
+}
+
+function renderQuestion(){
+  answered=false;
+  nextBtn.disabled=true;
+  optionsEl.innerHTML="";
+  const q=quiz[index];
+  questionEl.innerText=q.question;
+  countEl.innerText=`Question ${index+1} of ${quiz.length}`;
+
+  q.options.forEach((opt,i)=>{
+    const key=String.fromCharCode(65+i);
+    const div=document.createElement("div");
+    div.className="option";
+    div.innerText=`${key}. ${opt}`;
+    div.onclick=()=>selectOption(div,key);
+    optionsEl.appendChild(div);
+  });
+
+  scoreEl.innerText=`Score: ${score} / ${quiz.length}`;
+}
+
+function selectOption(el,key){
+  if(answered)return;
+  answered=true;
+  nextBtn.disabled=false;
+  const correct=quiz[index].correctAnswer;
+
+  document.querySelectorAll(".option").forEach(o=>{
+    if(o.innerText.startsWith(correct))o.classList.add("correct");
+  });
+
+  if(key===correct)score++; else el.classList.add("wrong");
+  scoreEl.innerText=`Score: ${score} / ${quiz.length}`;
+}
+
+function nextQuestion(){
+  index++;
+  if(index>=quiz.length){
+    quizArea.style.display="none";
+    result.style.display="block";
+    finalSummary.innerText=`Final Score: ${score} / ${quiz.length}`;
+    return;
+  }
+  renderQuestion();
+}
+
+/* POST-QUIZ ACTIONS */
+function retakeQuiz(){
+  index=0;score=0;
+  result.style.display="none";
+  quizArea.style.display="block";
+  renderQuestion();
+}
+
+function launchNewQuiz(){
+  setup.style.display="none";
+  quizArea.style.display="block";
+  result.style.display="none";
+  document.querySelector(`input[value="${lastCount}"]`)?.click();
+  launchQuiz();
+}
+
+function changeCount(){
+  result.style.display="none";
+  quizArea.style.display="none";
+  setup.style.display="block";
+}
+</script>
 
 </body>
 </html>

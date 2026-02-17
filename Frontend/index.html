@@ -15,7 +15,7 @@ body {
   background: #f4f6fb;
 }
 
-/* ===== FIXED SIDEBAR ===== */
+/* ===== SIDEBAR ===== */
 .sidebar {
   position: fixed;
   top: 0;
@@ -40,7 +40,7 @@ body {
   background: rgba(255,255,255,0.2);
 }
 
-/* ===== MAIN CONTENT ===== */
+/* ===== MAIN ===== */
 .main {
   margin-left: 240px;
   padding: 30px;
@@ -49,6 +49,11 @@ body {
 .header {
   font-size: 24px;
   font-weight: bold;
+}
+
+.project-title {
+  font-size: 14px;
+  color: #555;
   margin-bottom: 20px;
 }
 
@@ -68,60 +73,102 @@ body {
 .card h3 {
   color: #4f46e5;
 }
+
+.empty {
+  color: #666;
+  font-size: 14px;
+}
 </style>
 </head>
 
 <body>
 
+<!-- ===== PROJECT GUARD ===== -->
+<script>
+const currentProjectId = localStorage.getItem("currentProjectId");
+
+if (!currentProjectId) {
+  alert("No project selected. Redirecting to Home.");
+  window.location.href = "home.html";
+}
+</script>
+
 <div class="sidebar">
-  <a href="index.html"><h2>Learn Flow</h2></a>
+  <a href="home.html"><h2>Learn Flow</h2></a>
   <a href="index.html">Dashboard</a>
   <a href="upload.html">Upload Notes</a>
-  <a href="flashcards.html">Flashcards</a> 
+  <a href="flashcards.html">Flashcards</a>
   <a href="quiz.html">Quiz</a>
   <a href="tasks.html">Tasks</a>
 </div>
 
 <div class="main">
   <div class="header">Dashboard</div>
+  <div class="project-title" id="projectTitle"></div>
 
   <div class="card-container">
     <div class="card">
       <h3>📄 Notes Uploaded</h3>
-      <p id="notesCount">0 PDFs</p>
+      <p id="notesCount">—</p>
     </div>
 
     <div class="card">
       <h3>🧠 Flashcards</h3>
-      <p id="flashcardCount">0 Cards</p>
-    </div>
-
-    <div class="card">
-      <h3>⏱ Study Streak</h3>
-      <p>—</p>
+      <p id="flashcardCount">—</p>
     </div>
 
     <div class="card">
       <h3>✅ Tasks</h3>
-      <p>—</p>
+      <p id="taskCount">—</p>
+    </div>
+
+    <div class="card">
+      <h3>📁 Active Project</h3>
+      <p id="projectInfo">—</p>
     </div>
   </div>
 </div>
 
-<!-- ===============================
-     REAL DASHBOARD DATA SCRIPT
-     =============================== -->
+<!-- ===== DASHBOARD LOGIC ===== -->
 <script>
-  // PDFs uploaded
-  const uploads = Number(localStorage.getItem("uploads") || 0);
+const projects = JSON.parse(localStorage.getItem("projects")) || [];
+const flashcards = JSON.parse(localStorage.getItem("flashcards")) || [];
+const tasks = JSON.parse(localStorage.getItem("tasks")) || [];
 
-  // Flashcards count
-  const flashcards = JSON.parse(localStorage.getItem("flashcards")) || [];
-  const flashcardCount = flashcards.length;
+const project = projects.find(p => p.id == currentProjectId);
 
-  // Update dashboard
-  document.getElementById("notesCount").innerText = uploads + " PDFs";
-  document.getElementById("flashcardCount").innerText = flashcardCount + " Cards";
+if (!project) {
+  alert("Project not found. Redirecting to Home.");
+  window.location.href = "home.html";
+}
+
+/* ===== PROJECT TITLE ===== */
+document.getElementById("projectTitle").innerText =
+  "📁 Project: " + project.name;
+
+/* ===== NOTES COUNT ===== */
+document.getElementById("notesCount").innerText =
+  (project.uploads || 0) + " PDFs";
+
+/* ===== FLASHCARDS COUNT ===== */
+const projectFlashcards = flashcards.filter(
+  f => f.projectId == currentProjectId
+);
+
+document.getElementById("flashcardCount").innerText =
+  projectFlashcards.length + " Cards";
+
+/* ===== TASKS COUNT ===== */
+const projectTasks = tasks.filter(
+  t => t.projectId == currentProjectId
+);
+
+document.getElementById("taskCount").innerText =
+  projectTasks.length + " Tasks";
+
+/* ===== PROJECT INFO ===== */
+document.getElementById("projectInfo").innerText =
+  "ID: " + currentProjectId;
 </script>
 
 </body>

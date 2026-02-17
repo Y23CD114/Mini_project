@@ -1,20 +1,41 @@
+require("dotenv").config();
+
 const express = require("express");
 const multer = require("multer");
 const pdfParse = require("pdf-parse");
 const fs = require("fs");
 const cors = require("cors");
-const axios = require("axios");
+const Groq = require("groq-sdk");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
+const groq = new Groq({
+  apiKey: process.env.GROQ_API_KEY
+});
+
 /* =========================
    FILE UPLOAD CONFIG
 ========================= */
-const upload = multer({
-  dest: "uploads/"
-});
+const upload = multer({ dest: "uploads/" });
+
+/* =========================
+   SAFE JSON PARSER (⭐ IMPORTANT ⭐)
+========================= */
+function safeJSONParse(rawText) {
+  try {
+    // Extract JSON array or object from AI response
+    const match = rawText.match(/(\[.*\]|\{.*\})/s);
+    if (!match) throw new Error("No JSON found in AI response");
+
+    return JSON.parse(match[0]);
+  } catch (err) {
+    console.error("❌ JSON PARSE FAILED");
+    console.error("RAW AI RESPONSE:\n", rawText);
+    throw err;
+  }
+}
 
 /* =========================
    TEST ROUTE
@@ -24,78 +45,202 @@ app.get("/", (req, res) => {
 });
 
 /* =========================
-   PDF UPLOAD + PYTHON NLP
+   AI FLASHCARD GENERATOR
+========================= */
+async function generateFlashcardsAI(text) {
+  const prompt = `
+You are an AI study assistant.
+Generate exactly 5 flashcards from the text below.
+
+Return ONLY valid JSON in this format:
+[
+  {"question": "...", "answer": "..."}
+]
+
+TEXT:
+${text.slice(0, 5000)}
+`;
+
+  const response = await groq.chat.completions.create({
+    model: "llama-3.1-8b-instant",
+    messages: [{ role: "user", content: prompt }],
+    temperature: 0.3
+  });
+
+  return safeJSONParse(response.choices[0].message.content);
+}
+
+/* =========================
+   UPLOAD PDF
 ========================= */
 app.post("/upload-pdf", upload.single("pdf"), async (req, res) => {
   try {
-    // 1. Read PDF
     const dataBuffer = fs.readFileSync(req.file.path);
     const pdfData = await pdfParse(dataBuffer);
     const extractedText = pdfData.text;
 
-    // 2. Ask Python for FIRST batch of flashcards
-    const pythonResponse = await axios.post(
-      "http://127.0.0.1:8000/generate",
-      {
-        text: extractedText,
-        start: 0
-      }
-    );
+    const flashcards = await generateFlashcardsAI(extractedText);
 
-    // 3. Send to frontend
     res.json({
       success: true,
-      flashcards: pythonResponse.data.flashcards,
-      nextIndex: pythonResponse.data.nextIndex,
+      flashcards,
       fullText: extractedText
     });
-
-  } catch (error) {
-    console.error("Upload error:", error.message);
-    res.status(500).json({ error: "Failed to process PDF" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "PDF processing failed" });
   }
 });
 
 /* =========================
-   LOAD MORE FLASHCARDS
+   MORE FLASHCARDS
 ========================= */
-app.post("/load-more", async (req, res) => {
+app.post("/more-flashcards", async (req, res) => {
   try {
-    const { text, start } = req.body;
+    const { text, existingFlashcards = [] } = req.body;
 
-    const pythonResponse = await axios.post(
-      "http://127.0.0.1:8000/generate",
-      {
-        text,
-        start
-      }
-    );
+    const prompt = `
+Already generated flashcards:
+${JSON.stringify(existingFlashcards)}
 
-    res.json({
-      flashcards: pythonResponse.data.flashcards,
-      nextIndex: pythonResponse.data.nextIndex
+Generate 5 MORE flashcards from the text below.
+Do NOT repeat questions.
+
+Return ONLY valid JSON:
+[
+  {"question": "...", "answer": "..."}
+]
+
+TEXT:
+${text.slice(0, 5000)}
+`;
+
+    const response = await groq.chat.completions.create({
+      model: "llama-3.1-8b-instant",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.4
     });
 
-  } catch (error) {
-    console.error("Load more error:", error.message);
-    res.status(500).json({ error: "Failed to load more flashcards" });
+    res.json({
+      flashcards: safeJSONParse(response.choices[0].message.content)
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "More flashcards failed" });
   }
 });
 
 /* =========================
-   DOUBT SOLVER (FUTURE)
+   AI QUIZ GENERATOR
 ========================= */
-app.post("/ask-doubt", (req, res) => {
-  const { question } = req.body;
+app.post("/generate-quiz", async (req, res) => {
+  try {
+    const { text, count = 5 } = req.body;
+    const requestedCount = Math.min(Math.max(Number(count), 1), 25);
 
-  res.json({
-    answer: "This is a sample AI answer to your doubt: " + question
-  });
+    const prompt = `
+Generate up to ${requestedCount} multiple-choice questions.
+
+Rules:
+- 4 meaningful options
+- correctAnswer must be "A", "B", "C", or "D"
+- Do NOT repeat questions
+- Return ONLY valid JSON
+
+[
+  {
+    "question": "Question text",
+    "options": [
+      "Option A",
+      "Option B",
+      "Option C",
+      "Option D"
+    ],
+    "correctAnswer": "B"
+  }
+]
+
+TEXT:
+${text.slice(0, 6500)}
+`;
+
+    const response = await groq.chat.completions.create({
+      model: "llama-3.1-8b-instant",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.3
+    });
+
+    const quiz = safeJSONParse(response.choices[0].message.content);
+
+    res.json({
+      success: true,
+      requested: requestedCount,
+      generated: quiz.length,
+      quiz
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Quiz generation failed" });
+  }
 });
 
 /* =========================
-   SERVER START
+   MORE QUIZ
 ========================= */
-app.listen(3000, () => {
-  console.log("Server running on http://localhost:3000");
+app.post("/more-quiz", async (req, res) => {
+  try {
+    const { text, existingQuestions = [] } = req.body;
+
+    const prompt = `
+Already generated questions:
+${JSON.stringify(existingQuestions)}
+
+Generate up to 5 MORE questions.
+Do NOT repeat questions.
+
+Return ONLY valid JSON:
+[
+  {
+    "question": "Question text",
+    "options": [
+      "Option A",
+      "Option B",
+      "Option C",
+      "Option D"
+    ],
+    "correctAnswer": "C"
+  }
+]
+
+TEXT:
+${text.slice(0, 6500)}
+`;
+
+    const response = await groq.chat.completions.create({
+      model: "llama-3.1-8b-instant",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.4
+    });
+
+    const quiz = safeJSONParse(response.choices[0].message.content);
+
+    res.json({
+      success: true,
+      generated: quiz.length,
+      quiz
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "More quiz generation failed" });
+  }
+});
+
+/* =========================
+   START SERVER
+========================= */
+const PORT = 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
 });

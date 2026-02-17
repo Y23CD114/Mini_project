@@ -1,32 +1,99 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
 <title>Tasks</title>
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI,sans-serif;}
-body{background:#f4f6fb;}
-
-.sidebar{position:fixed;top:0;left:0;width:240px;height:100vh;
-background:linear-gradient(180deg,#5b6cff,#7a5cff);padding:20px;color:white;}
-.sidebar a{display:block;color:white;text-decoration:none;padding:12px;border-radius:8px;margin-bottom:10px;}
-.sidebar a:hover{background:rgba(255,255,255,0.2);}
-
-.main{margin-left:240px;padding:30px;}
-
-.task{
-  background:white;
-  padding:15px;
-  border-radius:10px;
-  margin-bottom:10px;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", sans-serif;
 }
+
+body { background: #f4f6fb; }
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 240px;
+  height: 100vh;
+  background: linear-gradient(180deg, #5b6cff, #7a5cff);
+  padding: 20px;
+  color: white;
+}
+
+.sidebar a {
+  display: block;
+  color: white;
+  text-decoration: none;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.sidebar a:hover { background: rgba(255,255,255,0.2); }
+
+/* ===== MAIN ===== */
+.main {
+  margin-left: 240px;
+  padding: 40px;
+  max-width: 800px;
+}
+
+h2 { margin-bottom: 20px; }
+
+.section { margin-bottom: 30px; }
+.section h3 { margin-bottom: 10px; }
+
+.task {
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.task.done {
+  opacity: 0.6;
+  text-decoration: line-through;
+}
+
+.badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  color: white;
+}
+
+.easy { background: #22c55e; }
+.medium { background: #f59e0b; }
+.hard { background: #ef4444; }
+
+.task-content { flex: 1; }
+.empty { color: #666; font-size: 14px; }
 </style>
 </head>
 
 <body>
 
+<!-- ===== PROJECT GUARD ===== -->
+<script>
+const projectId = localStorage.getItem("currentProjectId");
+
+if (!projectId) {
+  alert("No project selected. Redirecting to Home.");
+  window.location.href = "home.html";
+}
+</script>
+
 <div class="sidebar">
-  <a href="index.html"><h2>Learn Flow</h2></a>
+  <a href="home.html"><h2>Learn Flow</h2></a>
   <a href="index.html">Dashboard</a>
   <a href="upload.html">Upload Notes</a>
   <a href="flashcards.html">Flashcards</a>
@@ -35,12 +102,81 @@ background:linear-gradient(180deg,#5b6cff,#7a5cff);padding:20px;color:white;}
 </div>
 
 <div class="main">
-  <h2>Tasks</h2><br>
-
-  <div class="task"><input type="checkbox"> Review Flashcards</div>
-  <div class="task"><input type="checkbox"> Take Quiz</div>
-  <div class="task"><input type="checkbox"> Revise Hard Cards</div>
+  <h2>📌 Tasks</h2>
+  <div id="tasksContainer"></div>
 </div>
+
+<script>
+/* ============================
+   LOAD PROJECT TASKS
+============================ */
+let allTasks = JSON.parse(localStorage.getItem("tasks")) || [];
+const container = document.getElementById("tasksContainer");
+
+function getProjectTasks() {
+  return allTasks.filter(t => t.projectId === projectId);
+}
+
+/* ============================
+   RENDER TASKS
+============================ */
+function renderTasks() {
+  const tasks = getProjectTasks();
+  container.innerHTML = "";
+
+  if (!tasks.length) {
+    container.innerHTML =
+      `<p class="empty">No tasks for this project yet.</p>`;
+    return;
+  }
+
+  const groups = { Easy: [], Medium: [], Hard: [] };
+  tasks.forEach(t => groups[t.difficulty]?.push(t));
+
+  Object.keys(groups).forEach(level => {
+    if (!groups[level].length) return;
+
+    const section = document.createElement("div");
+    section.className = "section";
+    section.innerHTML = `<h3>${level} Tasks</h3>`;
+
+    groups[level].forEach(task => {
+      const div = document.createElement("div");
+      div.className = "task" + (task.status === "done" ? " done" : "");
+
+      div.innerHTML = `
+        <input type="checkbox" ${task.status === "done" ? "checked" : ""}
+          onchange="toggleTask(${task.id})">
+        <div class="task-content">
+          <strong>${task.question}</strong><br>
+          <small>${task.answer}</small>
+        </div>
+        <span class="badge ${level.toLowerCase()}">${level}</span>
+      `;
+
+      section.appendChild(div);
+    });
+
+    container.appendChild(section);
+  });
+}
+
+/* ============================
+   TOGGLE TASK (INSTANT UI)
+============================ */
+function toggleTask(id) {
+  allTasks = allTasks.map(t =>
+    t.id === id
+      ? { ...t, status: t.status === "done" ? "pending" : "done" }
+      : t
+  );
+
+  localStorage.setItem("tasks", JSON.stringify(allTasks));
+  renderTasks(); // ⚡ instant strike / unstrike
+}
+
+renderTasks();
+</script>
 
 </body>
 </html>

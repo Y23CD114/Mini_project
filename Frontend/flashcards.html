@@ -12,9 +12,7 @@
   font-family: "Segoe UI", sans-serif;
 }
 
-body {
-  background: #f4f6fb;
-}
+body { background: #f4f6fb; }
 
 /* ===== SIDEBAR ===== */
 .sidebar {
@@ -37,9 +35,7 @@ body {
   margin-bottom: 10px;
 }
 
-.sidebar a:hover {
-  background: rgba(255,255,255,0.2);
-}
+.sidebar a:hover { background: rgba(255,255,255,0.2); }
 
 /* ===== MAIN ===== */
 .main {
@@ -50,26 +46,25 @@ body {
   align-items: center;
 }
 
-h2 {
-  margin-bottom: 20px;
-}
+h2 { margin-bottom: 20px; }
 
 /* ===== FLASHCARD ===== */
-.card-container {
-  perspective: 1000px;
-}
+.card-container { perspective: 1000px; }
 
 .flashcard {
   width: 380px;
   height: 220px;
   position: relative;
   transform-style: preserve-3d;
-  transition: transform 0.6s;
+  transition: transform 0.6s, opacity 0.2s;
   cursor: pointer;
 }
 
-.flashcard.flipped {
-  transform: rotateY(180deg);
+.flashcard.flipped { transform: rotateY(180deg); }
+
+.flashcard.fade {
+  opacity: 0;
+  transform: scale(0.96);
 }
 
 .card-face {
@@ -95,7 +90,7 @@ h2 {
   font-weight: normal;
 }
 
-/* ===== NAVIGATION ===== */
+/* ===== CONTROLS ===== */
 .controls {
   margin-top: 30px;
   display: flex;
@@ -114,22 +109,52 @@ h2 {
   cursor: pointer;
 }
 
-.arrow:hover {
-  background: #4338ca;
+.arrow:hover { background: #4338ca; }
+.arrow:disabled { background: #a5b4fc; cursor: not-allowed; }
+
+.progress { font-size: 14px; color: #555; }
+
+/* ===== DIFFICULTY ===== */
+.difficulty {
+  margin-top: 20px;
+  display: flex;
+  gap: 12px;
 }
 
-.progress {
+.diff-btn {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 20px;
+  color: white;
+  cursor: pointer;
+}
+
+.easy { background: #22c55e; }
+.medium { background: #f59e0b; }
+.hard { background: #ef4444; }
+
+.loading {
+  margin-top: 14px;
   font-size: 14px;
-  color: #555;
+  color: #4f46e5;
+  display: none;
 }
 </style>
 </head>
 
 <body>
 
-<!-- SIDEBAR -->
+<!-- ===== PROJECT GUARD ===== -->
+<script>
+const projectId = localStorage.getItem("currentProjectId");
+if (!projectId) {
+  alert("No project selected. Redirecting to Home.");
+  window.location.href = "home.html";
+}
+</script>
+
 <div class="sidebar">
-  <a href="index.html"><h2>Learn Flow</h2></a>
+  <a href="home.html"><h2>Learn Flow</h2></a>
   <a href="index.html">Dashboard</a>
   <a href="upload.html">Upload Notes</a>
   <a href="flashcards.html">Flashcards</a>
@@ -137,15 +162,20 @@ h2 {
   <a href="tasks.html">Tasks</a>
 </div>
 
-<!-- MAIN -->
 <div class="main">
   <h2>🧠 Flashcards</h2>
 
   <div class="card-container">
     <div class="flashcard" id="flashcard" onclick="flipCard()">
-      <div class="card-face card-front" id="question"></div>
+      <div class="card-face" id="question"></div>
       <div class="card-face card-back" id="answer"></div>
     </div>
+  </div>
+
+  <div class="difficulty">
+    <button class="diff-btn easy" onclick="addTask('Easy')">Easy</button>
+    <button class="diff-btn medium" onclick="addTask('Medium')">Medium</button>
+    <button class="diff-btn hard" onclick="addTask('Hard')">Hard</button>
   </div>
 
   <div class="controls">
@@ -154,121 +184,120 @@ h2 {
     <button class="arrow" onclick="nextCard()">➡</button>
     <button class="arrow" onclick="loadMore()">➕</button>
   </div>
+
+  <div class="loading" id="loading">Generating more flashcards…</div>
 </div>
 
 <script>
-// ===============================
-// LOAD FLASHCARDS (SAFE)
-// ===============================
-let rawCards = JSON.parse(localStorage.getItem("flashcards")) || [];
+/* ===============================
+   LOAD PROJECT FLASHCARDS
+=============================== */
+let allFlashcards = JSON.parse(localStorage.getItem("flashcards")) || [];
 
-let flashcards = rawCards
-  .map(card => {
-    if (card.q && card.a) return card;
-    if (card.question && card.answer) {
-      return { q: card.question, a: card.answer };
-    }
-    return null;
-  })
-  .filter(Boolean);
+let flashcards = allFlashcards
+  .filter(f => f.projectId === projectId)
+  .map(f => ({ q: f.question, a: f.answer }));
 
-if (flashcards.length === 0) {
-  flashcards = [{
-    q: "No flashcards found",
-    a: "Please upload a PDF first."
-  }];
+const fullText = localStorage.getItem("fullText_" + projectId) || "";
+
+if (!flashcards.length) {
+  flashcards = [{ q: "No flashcards yet", a: "Upload notes first." }];
 }
 
 let current = 0;
+
 const card = document.getElementById("flashcard");
 const question = document.getElementById("question");
 const answer = document.getElementById("answer");
 const progress = document.getElementById("progress");
+const loadingText = document.getElementById("loading");
 
+/* ===============================
+   CARD LOGIC
+=============================== */
 function updateCard() {
-  if (!flashcards.length) {
-    question.innerText = "No flashcards found";
-    answer.innerText = "Please upload a PDF first.";
-    progress.innerText = "0 / 0";
-    return;
-  }
+  card.classList.add("fade");
+  setTimeout(() => {
+    question.innerText = flashcards[current].q;
+    answer.innerText = flashcards[current].a;
+    progress.innerText = `${current + 1} / ${flashcards.length}`;
+    card.classList.remove("flipped", "fade");
+  }, 120);
+}
 
+function flipCard() { card.classList.toggle("flipped"); }
+function nextCard() { if (current < flashcards.length - 1) { current++; updateCard(); } }
+function prevCard() { if (current > 0) { current--; updateCard(); } }
+
+/* ===============================
+   ADD TASK (PROJECT-SAFE)
+=============================== */
+function addTask(level) {
+  let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
   const c = flashcards[current];
-  question.innerText = c.q || "No question";
-  answer.innerText = c.a || "No answer";
-  progress.innerText = `${current + 1} / ${flashcards.length}`;
-  card.classList.remove("flipped");
-}
 
-function flipCard() {
-  card.classList.toggle("flipped");
-}
+  const exists = tasks.some(
+    t => t.question === c.q && t.difficulty === level && t.projectId === projectId
+  );
 
-function nextCard() {
-  if (current < flashcards.length - 1) {
-    current++;
-    updateCard();
+  if (!exists) {
+    tasks.push({
+      id: Date.now(),
+      projectId,
+      question: c.q,
+      answer: c.a,
+      difficulty: level,
+      status: "pending"
+    });
+    localStorage.setItem("tasks", JSON.stringify(tasks));
   }
+
+  nextCard();
 }
 
-function prevCard() {
-  if (current > 0) {
-    current--;
-    updateCard();
-  }
-}
-
-// ===============================
-// LOAD MORE
-// ===============================
-let fullText = localStorage.getItem("fullText") || "";
-let nextIndex = parseInt(localStorage.getItem("nextIndex") || "0");
-
+/* ===============================
+   LOAD MORE FLASHCARDS
+=============================== */
 async function loadMore() {
-  const res = await fetch("http://localhost:3000/load-more", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text: fullText, start: nextIndex })
-  });
+  loadingText.style.display = "block";
 
-  const data = await res.json();
+  try {
+    const res = await fetch("http://localhost:3000/more-flashcards", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text: fullText,
+        existingFlashcards: flashcards.map(c => ({
+          question: c.q,
+          answer: c.a
+        }))
+      })
+    });
 
-  const newCards = (data.flashcards || []).map(card => ({
-    q: card.question,
-    a: card.answer
-  }));
+    const data = await res.json();
 
-  flashcards = flashcards.concat(newCards);
-  nextIndex = data.nextIndex || nextIndex;
+    const newOnes = data.flashcards.map(fc => ({
+      question: fc.question,
+      answer: fc.answer,
+      projectId
+    }));
 
-  localStorage.setItem("flashcards", JSON.stringify(flashcards));
-  localStorage.setItem("nextIndex", nextIndex);
+    allFlashcards = allFlashcards.concat(newOnes);
+    localStorage.setItem("flashcards", JSON.stringify(allFlashcards));
 
-  updateCard();
+    flashcards = flashcards.concat(
+      newOnes.map(f => ({ q: f.question, a: f.answer }))
+    );
+
+    updateCard();
+  } catch {
+    alert("Failed to generate flashcards.");
+  } finally {
+    loadingText.style.display = "none";
+  }
 }
 
 updateCard();
-</script>
-
-<!-- ===============================
-     REFRESH WARNING
-     ONLY ON REFRESH / TAB CLOSE
-     =============================== -->
-<script>
-let isReload = false;
-
-window.addEventListener("keydown", e => {
-  if (e.key === "F5" || (e.ctrlKey && e.key === "r") || (e.metaKey && e.key === "r")) {
-    isReload = true;
-  }
-});
-
-window.addEventListener("beforeunload", function (e) {
-  if (isReload && localStorage.getItem("flashcards")) {
-    e.preventDefault();
-    e.returnValue = "";
-  }
-});
 </script>
 
 </body>
