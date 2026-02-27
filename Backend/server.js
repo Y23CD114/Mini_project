@@ -21,14 +21,12 @@ const groq = new Groq({
 const upload = multer({ dest: "uploads/" });
 
 /* =========================
-   SAFE JSON PARSER (⭐ IMPORTANT ⭐)
+   SAFE JSON PARSER
 ========================= */
 function safeJSONParse(rawText) {
   try {
-    // Extract JSON array or object from AI response
     const match = rawText.match(/(\[.*\]|\{.*\})/s);
     if (!match) throw new Error("No JSON found in AI response");
-
     return JSON.parse(match[0]);
   } catch (err) {
     console.error("❌ JSON PARSE FAILED");
@@ -49,10 +47,9 @@ app.get("/", (req, res) => {
 ========================= */
 async function generateFlashcardsAI(text) {
   const prompt = `
-You are an AI study assistant.
 Generate exactly 5 flashcards from the text below.
 
-Return ONLY valid JSON in this format:
+Return ONLY valid JSON:
 [
   {"question": "...", "answer": "..."}
 ]
@@ -86,6 +83,7 @@ app.post("/upload-pdf", upload.single("pdf"), async (req, res) => {
       flashcards,
       fullText: extractedText
     });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "PDF processing failed" });
@@ -103,7 +101,7 @@ app.post("/more-flashcards", async (req, res) => {
 Already generated flashcards:
 ${JSON.stringify(existingFlashcards)}
 
-Generate 5 MORE flashcards from the text below.
+Generate 5 MORE flashcards.
 Do NOT repeat questions.
 
 Return ONLY valid JSON:
@@ -122,8 +120,10 @@ ${text.slice(0, 5000)}
     });
 
     res.json({
+      success: true,
       flashcards: safeJSONParse(response.choices[0].message.content)
     });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "More flashcards failed" });
@@ -136,6 +136,11 @@ ${text.slice(0, 5000)}
 app.post("/generate-quiz", async (req, res) => {
   try {
     const { text, count = 5 } = req.body;
+
+    if (!text) {
+      return res.status(400).json({ error: "Missing text" });
+    }
+
     const requestedCount = Math.min(Math.max(Number(count), 1), 25);
 
     const prompt = `
@@ -234,6 +239,67 @@ ${text.slice(0, 6500)}
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "More quiz generation failed" });
+  }
+});
+
+/* =========================
+   AI CHAT ASSISTANT  🧠✨ (SMART VERSION)
+========================= */
+app.post("/chat", async (req, res) => {
+  try {
+    const { text = "", message } = req.body;
+
+    if (!message) {
+      return res.status(400).json({ error: "Missing message" });
+    }
+
+    const lowerMsg = message.toLowerCase().trim();
+
+    // 🔥 Smart greeting detection
+    const greetings = ["hi", "hello", "hey", "good morning", "good evening"];
+
+    if (greetings.includes(lowerMsg)) {
+      return res.json({
+        success: true,
+        reply: "Hey 👋 I'm your AI Study Assistant. Ask me anything about your notes!"
+      });
+    }
+
+    // If no notes uploaded
+    if (!text) {
+      return res.json({
+        success: true,
+        reply: "You haven't uploaded any notes yet 📄. Upload a PDF and I'll help you study!"
+      });
+    }
+
+    const prompt = `
+You are a friendly AI study assistant.
+
+If the question is related to the notes, answer clearly using them.
+If it's general conversation, respond naturally and briefly.
+
+STUDY MATERIAL:
+${text.slice(0, 6000)}
+
+USER QUESTION:
+${message}
+`;
+
+    const response = await groq.chat.completions.create({
+      model: "llama-3.1-8b-instant",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.4
+    });
+
+    res.json({
+      success: true,
+      reply: response.choices[0].message.content
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Chat failed" });
   }
 });
 

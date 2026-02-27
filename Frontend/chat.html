@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AI Study Assistant</title>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", sans-serif;
+}
+
+body {
+  background: #f4f6fb;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 240px;
+  height: 100vh;
+  background: linear-gradient(180deg, #5b6cff, #7a5cff);
+  padding: 20px;
+  color: white;
+}
+
+.sidebar a {
+  display: block;
+  color: white;
+  text-decoration: none;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.sidebar a:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+/* ===== MAIN ===== */
+.main {
+  margin-left: 240px;
+  padding: 30px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+h2 {
+  margin-bottom: 20px;
+}
+
+/* ===== CHAT AREA ===== */
+.chat-box {
+  flex: 1;
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  overflow-y: auto;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+  margin-bottom: 15px;
+}
+
+.message {
+  margin-bottom: 15px;
+  max-width: 70%;
+  padding: 12px 15px;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.user {
+  background: #5b6cff;
+  color: white;
+  margin-left: auto;
+}
+
+.bot {
+  background: #eef2ff;
+}
+
+/* ===== INPUT ===== */
+.input-area {
+  display: flex;
+  gap: 10px;
+}
+
+input {
+  flex: 1;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+button {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #5b6cff;
+  color: white;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #4f46e5;
+}
+</style>
+</head>
+
+<body>
+
+<!-- PROJECT GUARD -->
+<script>
+const projectId = localStorage.getItem("currentProjectId");
+if (!projectId) {
+  alert("No project selected.");
+  window.location.href = "home.html";
+}
+</script>
+
+<div class="sidebar">
+  <a href="home.html"><h2>Learn Flow</h2></a>
+  <a href="index.html">Dashboard</a>
+  <a href="upload.html">Upload Notes</a>
+  <a href="flashcards.html">Flashcards</a>
+  <a href="quiz.html">Quiz</a>
+  <a href="tasks.html">Tasks</a>
+  <a href="chat.html">AI Assistant</a>
+</div>
+
+<div class="main">
+  <h2>🤖 AI Study Assistant</h2>
+
+  <div class="chat-box" id="chatBox"></div>
+
+  <div class="input-area">
+    <input type="text" id="userInput" placeholder="Ask something from your notes...">
+    <button onclick="sendMessage()">Send</button>
+  </div>
+</div>
+
+<script>
+const FULLTEXT_KEY = `fullText_${projectId}`;
+const chatBox = document.getElementById("chatBox");
+
+function addMessage(text, type) {
+  const div = document.createElement("div");
+  div.className = "message " + type;
+  div.innerText = text;
+  chatBox.appendChild(div);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+async function sendMessage() {
+  const input = document.getElementById("userInput");
+  const message = input.value.trim();
+  const fullText = localStorage.getItem(FULLTEXT_KEY);
+
+  if (!message) return;
+  if (!fullText) {
+    addMessage("Please upload notes first.", "bot");
+    return;
+  }
+
+  addMessage(message, "user");
+  input.value = "";
+
+  addMessage("Thinking...", "bot");
+
+  try {
+    const res = await fetch("http://localhost:3000/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        text: fullText,
+        message: message
+      })
+    });
+
+    const data = await res.json();
+
+    // Remove "Thinking..."
+    chatBox.removeChild(chatBox.lastChild);
+
+    addMessage(data.reply || "No response.", "bot");
+
+  } catch (err) {
+    chatBox.removeChild(chatBox.lastChild);
+    addMessage("Something went wrong.", "bot");
+  }
+}
+</script>
+
+</body>
+</html>

@@ -1,18 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Dashboard</title>
+<title>Dashboard · Learn Flow</title>
 
 <style>
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: Segoe UI, sans-serif;
+  font-family: "Inter", "Segoe UI", sans-serif;
 }
 
 body {
-  background: #f4f6fb;
+  background: radial-gradient(circle at top left, #1e1b4b, #0f172a 60%);
+  color: #e2e8f0;
+  min-height: 100vh;
 }
 
 /* ===== SIDEBAR ===== */
@@ -20,73 +22,171 @@ body {
   position: fixed;
   top: 0;
   left: 0;
-  width: 240px;
+  width: 250px;
   height: 100vh;
-  background: linear-gradient(180deg, #5b6cff, #7a5cff);
-  padding: 20px;
-  color: white;
+  background: linear-gradient(180deg, #111827, #1f2937);
+  padding: 30px 20px;
+  border-right: 1px solid rgba(255,255,255,0.05);
+}
+
+.sidebar h2 {
+  margin-bottom: 40px;
+  font-size: 22px;
+  background: linear-gradient(90deg, #818cf8, #c084fc);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .sidebar a {
   display: block;
-  color: white;
+  color: #cbd5e1;
   text-decoration: none;
-  padding: 12px;
-  border-radius: 8px;
+  padding: 12px 14px;
+  border-radius: 10px;
   margin-bottom: 10px;
+  transition: 0.2s ease;
+  font-weight: 500;
 }
 
 .sidebar a:hover {
-  background: rgba(255,255,255,0.2);
+  background: rgba(99,102,241,0.2);
+  color: white;
+  transform: translateX(4px);
 }
 
 /* ===== MAIN ===== */
 .main {
-  margin-left: 240px;
-  padding: 30px;
+  margin-left: 250px;
+  padding: 40px;
 }
 
 .header {
-  font-size: 24px;
-  font-weight: bold;
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 8px;
 }
 
 .project-title {
   font-size: 14px;
-  color: #555;
-  margin-bottom: 20px;
+  color: #94a3b8;
+  margin-bottom: 30px;
 }
 
+/* ===== CARDS ===== */
 .card-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 24px;
 }
 
 .card {
-  background: white;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+  background: rgba(30, 41, 59, 0.6);
+  backdrop-filter: blur(14px);
+  padding: 24px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+  transition: 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 25px 50px rgba(0,0,0,0.6);
 }
 
 .card h3 {
-  color: #4f46e5;
+  margin-bottom: 10px;
+  font-weight: 500;
+  color: #cbd5e1;
 }
 
-.empty {
-  color: #666;
+.card p {
+  font-size: 20px;
+  font-weight: 600;
+  color: #818cf8;
+}
+
+/* ===== CHATBOT ===== */
+#chatToggle {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 65px;
+  height: 65px;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 15px 35px rgba(99,102,241,0.5);
+  transition: 0.3s ease;
+  z-index: 9999;
+}
+
+#chatToggle:hover {
+  transform: scale(1.1);
+}
+
+#chatBox {
+  position: fixed;
+  bottom: 100px;
+  right: 25px;
+  width: 340px;
+  height: 440px;
+  background: #0f172a;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.1);
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 9999;
+}
+
+#chatHeader {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  padding: 14px;
+  font-weight: 600;
+}
+
+#chatMessages {
+  flex: 1;
+  padding: 12px;
+  overflow-y: auto;
   font-size: 14px;
+}
+
+.chatMsg { margin-bottom: 10px; }
+.userMsg { text-align: right; color: #a5b4fc; }
+.botMsg { text-align: left; color: #e2e8f0; }
+
+#chatInputArea {
+  display: flex;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+#chatInput {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  outline: none;
+  background: #1e293b;
+  color: white;
+}
+
+#chatSend {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border: none;
+  padding: 10px 16px;
+  cursor: pointer;
 }
 </style>
 </head>
 
 <body>
 
-<!-- ===== PROJECT GUARD ===== -->
 <script>
 const currentProjectId = localStorage.getItem("currentProjectId");
-
 if (!currentProjectId) {
   alert("No project selected. Redirecting to Home.");
   window.location.href = "home.html";
@@ -94,7 +194,10 @@ if (!currentProjectId) {
 </script>
 
 <div class="sidebar">
-  <a href="home.html"><h2>Learn Flow</h2></a>
+  <h2>
+  <a href="home.html" style="color:inherit; text-decoration:none;">
+     Learn Flow
+  </a></h2> 
   <a href="index.html">Dashboard</a>
   <a href="upload.html">Upload Notes</a>
   <a href="flashcards.html">Flashcards</a>
@@ -129,7 +232,6 @@ if (!currentProjectId) {
   </div>
 </div>
 
-<!-- ===== DASHBOARD LOGIC ===== -->
 <script>
 const projects = JSON.parse(localStorage.getItem("projects")) || [];
 const flashcards = JSON.parse(localStorage.getItem("flashcards")) || [];
@@ -142,15 +244,12 @@ if (!project) {
   window.location.href = "home.html";
 }
 
-/* ===== PROJECT TITLE ===== */
 document.getElementById("projectTitle").innerText =
   "📁 Project: " + project.name;
 
-/* ===== NOTES COUNT ===== */
 document.getElementById("notesCount").innerText =
   (project.uploads || 0) + " PDFs";
 
-/* ===== FLASHCARDS COUNT ===== */
 const projectFlashcards = flashcards.filter(
   f => f.projectId == currentProjectId
 );
@@ -158,7 +257,6 @@ const projectFlashcards = flashcards.filter(
 document.getElementById("flashcardCount").innerText =
   projectFlashcards.length + " Cards";
 
-/* ===== TASKS COUNT ===== */
 const projectTasks = tasks.filter(
   t => t.projectId == currentProjectId
 );
@@ -166,9 +264,74 @@ const projectTasks = tasks.filter(
 document.getElementById("taskCount").innerText =
   projectTasks.length + " Tasks";
 
-/* ===== PROJECT INFO ===== */
 document.getElementById("projectInfo").innerText =
   "ID: " + currentProjectId;
+</script>
+
+<button id="chatToggle">💬</button>
+
+<div id="chatBox">
+  <div id="chatHeader">AI Study Assistant</div>
+  <div id="chatMessages"></div>
+  <div id="chatInputArea">
+    <input id="chatInput" placeholder="Ask something..." />
+    <button id="chatSend">Send</button>
+  </div>
+</div>
+
+<script>
+const projectId = localStorage.getItem("currentProjectId");
+const FULLTEXT_KEY = `fullText_${projectId}`;
+
+const chatToggle = document.getElementById("chatToggle");
+const chatBox = document.getElementById("chatBox");
+const chatMessages = document.getElementById("chatMessages");
+const chatInput = document.getElementById("chatInput");
+const chatSend = document.getElementById("chatSend");
+
+chatToggle.onclick = () => {
+  chatBox.style.display =
+    chatBox.style.display === "flex" ? "none" : "flex";
+};
+
+chatSend.onclick = sendMessage;
+chatInput.addEventListener("keypress", e => {
+  if (e.key === "Enter") sendMessage();
+});
+
+function addMessage(text, type) {
+  const div = document.createElement("div");
+  div.className = "chatMsg " + type;
+  div.innerText = text;
+  chatMessages.appendChild(div);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+async function sendMessage() {
+  const message = chatInput.value.trim();
+  if (!message) return;
+
+  addMessage(message, "userMsg");
+  chatInput.value = "";
+
+  const fullText = localStorage.getItem(FULLTEXT_KEY) || "";
+
+  try {
+    const res = await fetch("http://localhost:3000/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message,
+        text: fullText
+      })
+    });
+
+    const data = await res.json();
+    addMessage(data.reply, "botMsg");
+  } catch {
+    addMessage("Error connecting to AI.", "botMsg");
+  }
+}
 </script>
 
 </body>

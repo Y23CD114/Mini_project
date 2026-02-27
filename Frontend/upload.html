@@ -1,59 +1,213 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Upload Notes</title>
+<title>Upload Notes · Learn Flow</title>
 
 <style>
-* { margin:0; padding:0; box-sizing:border-box; font-family:Segoe UI,sans-serif; }
-body { background:#f4f6fb; }
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:"Inter","Segoe UI",sans-serif;
+}
 
+body{
+  background: radial-gradient(circle at top left, #1e1b4b, #0f172a 60%);
+  color:#e2e8f0;
+  min-height:100vh;
+}
+
+/* ===== SIDEBAR ===== */
 .sidebar{
-  position:fixed; top:0; left:0;
-  width:240px; height:100vh;
-  background:linear-gradient(180deg,#5b6cff,#7a5cff);
-  padding:20px; color:white;
+  position:fixed;
+  top:0;
+  left:0;
+  width:250px;
+  height:100vh;
+  background:linear-gradient(180deg,#111827,#1f2937);
+  padding:30px 20px;
+  border-right:1px solid rgba(255,255,255,0.05);
 }
 
+/* ===== LOGO ===== */
+.sidebar h2{
+  margin-bottom:40px;
+  font-weight:700;
+  font-size:22px;
+}
+
+.sidebar h2 a{
+  text-decoration:none;
+  background:linear-gradient(90deg,#818cf8,#c084fc);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  transition:0.3s ease;
+}
+
+/* Hover effect for logo */
+.sidebar h2 a:hover{
+  -webkit-text-fill-color:#ffffff;
+  background:none;
+  text-shadow:0 0 12px rgba(139,92,246,0.7);
+}
+
+/* ===== NAV LINKS ===== */
 .sidebar a{
-  display:block; color:white; text-decoration:none;
-  padding:12px; border-radius:8px; margin-bottom:10px;
+  display:block;
+  color:#cbd5e1;
+  text-decoration:none;
+  padding:12px 14px;
+  border-radius:10px;
+  margin-bottom:10px;
+  transition:0.2s ease;
 }
-.sidebar a:hover{ background:rgba(255,255,255,0.2); }
 
-.main{ margin-left:240px; padding:30px; }
+.sidebar a:hover{
+  background:rgba(99,102,241,0.2);
+  color:white;
+  transform:translateX(4px);
+}
+/* ===== MAIN ===== */
+.main{
+  margin-left:250px;
+  padding:60px;
+}
 
+.main h2{
+  font-size:28px;
+  margin-bottom:30px;
+}
+
+/* ===== UPLOAD BOX ===== */
 .upload-box{
-  background:white;
-  padding:40px;
-  border-radius:12px;
-  border:2px dashed #7a5cff;
+  background:rgba(30,41,59,0.6);
+  backdrop-filter:blur(14px);
+  padding:60px;
+  border-radius:20px;
+  border:2px dashed rgba(129,140,248,0.4);
   text-align:center;
+  transition:0.3s ease;
 }
 
+.upload-box:hover{
+  border-color:#818cf8;
+  box-shadow:0 20px 40px rgba(0,0,0,0.5);
+}
+
+.upload-box p{
+  font-size:16px;
+  margin-bottom:20px;
+}
+
+/* ===== INPUT ===== */
+input[type="file"]{
+  margin:20px 0;
+  color:#cbd5e1;
+}
+
+/* ===== BUTTON ===== */
 button{
-  margin-top:20px;
-  padding:10px 20px;
-  background:#5b6cff;
+  padding:12px 28px;
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
   color:white;
   border:none;
-  border-radius:8px;
+  border-radius:12px;
   cursor:pointer;
+  font-weight:500;
+  transition:0.2s ease;
 }
 
-.note {
-  margin-top: 15px;
-  font-size: 14px;
-  color: #555;
+button:hover{
+  transform:translateY(-2px);
+  box-shadow:0 10px 30px rgba(139,92,246,0.5);
+}
+
+/* ===== STATUS TEXT ===== */
+.note{
+  margin-top:20px;
+  font-size:14px;
+  color:#94a3b8;
+}
+
+/* ===== CHATBOT ===== */
+#chatToggle{
+  position:fixed;
+  bottom:25px;
+  right:25px;
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  color:white;
+  border:none;
+  border-radius:50%;
+  width:65px;
+  height:65px;
+  font-size:24px;
+  cursor:pointer;
+  box-shadow:0 15px 35px rgba(99,102,241,0.5);
+  transition:0.3s ease;
+  z-index:9999;
+}
+
+#chatToggle:hover{ transform:scale(1.1); }
+
+#chatBox{
+  position:fixed;
+  bottom:100px;
+  right:25px;
+  width:340px;
+  height:440px;
+  background:#0f172a;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,0.1);
+  display:none;
+  flex-direction:column;
+  overflow:hidden;
+  z-index:9999;
+}
+
+#chatHeader{
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  padding:14px;
+  font-weight:600;
+}
+
+#chatMessages{
+  flex:1;
+  padding:12px;
+  overflow-y:auto;
+  font-size:14px;
+}
+
+.chatMsg{ margin-bottom:10px; }
+.userMsg{ text-align:right; color:#a5b4fc; }
+.botMsg{ text-align:left; color:#e2e8f0; }
+
+#chatInputArea{
+  display:flex;
+  border-top:1px solid rgba(255,255,255,0.08);
+}
+
+#chatInput{
+  flex:1;
+  padding:10px;
+  border:none;
+  outline:none;
+  background:#1e293b;
+  color:white;
+}
+
+#chatSend{
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  border:none;
+  padding:10px 16px;
+  cursor:pointer;
 }
 </style>
 </head>
 
 <body>
 
-<!-- ===== PROJECT GUARD ===== -->
 <script>
 const currentProjectId = localStorage.getItem("currentProjectId");
-
 if (!currentProjectId) {
   alert("No project selected. Redirecting to Home.");
   window.location.href = "home.html";
@@ -61,7 +215,11 @@ if (!currentProjectId) {
 </script>
 
 <div class="sidebar">
-  <a href="home.html"><h2>Learn Flow</h2></a>
+  <<h2>
+  <a href="home.html" style="color:inherit; text-decoration:none;">
+     Learn Flow
+  </a>
+  </h2>
   <a href="index.html">Dashboard</a>
   <a href="upload.html">Upload Notes</a>
   <a href="flashcards.html">Flashcards</a>
@@ -70,42 +228,40 @@ if (!currentProjectId) {
 </div>
 
 <div class="main">
-  <h2>Upload Notes</h2><br>
+  <h2>📄 Upload Notes</h2>
 
   <div class="upload-box">
-    <p>📄 Upload PDF or Text Files</p><br>
-    <input type="file" id="pdfFile" accept=".pdf"><br>
+    <p>Upload PDF to auto-generate flashcards & quizzes</p>
+    <input type="file" id="pdfFile" accept=".pdf">
+    <br>
     <button onclick="uploadPDF()">Upload</button>
     <p class="note" id="result"></p>
   </div>
 </div>
 
 <script>
-async function uploadPDF() {
+async function uploadPDF(){
   const fileInput = document.getElementById("pdfFile");
   const result = document.getElementById("result");
 
-  if (fileInput.files.length === 0) {
+  if(fileInput.files.length === 0){
     alert("Please select a PDF file");
     return;
   }
 
-  result.innerText = "Uploading and generating flashcards... ⏳";
+  result.innerText = "⏳ Processing with AI...";
 
   const formData = new FormData();
   formData.append("pdf", fileInput.files[0]);
 
-  try {
-    const response = await fetch("http://localhost:3000/upload-pdf", {
-      method: "POST",
-      body: formData
+  try{
+    const response = await fetch("http://localhost:3000/upload-pdf",{
+      method:"POST",
+      body:formData
     });
 
     const data = await response.json();
 
-    /* ===============================
-       SAVE FLASHCARDS (PROJECT-AWARE)
-    =============================== */
     const existing = JSON.parse(localStorage.getItem("flashcards")) || [];
 
     const projectFlashcards = data.flashcards.map(fc => ({
@@ -119,31 +275,88 @@ async function uploadPDF() {
       JSON.stringify(existing.concat(projectFlashcards))
     );
 
-    /* ===============================
-       UPDATE PROJECT UPLOAD COUNT
-    =============================== */
     let projects = JSON.parse(localStorage.getItem("projects")) || [];
-
     projects = projects.map(p =>
       p.id == currentProjectId
         ? { ...p, uploads: (p.uploads || 0) + 1 }
         : p
     );
-
     localStorage.setItem("projects", JSON.stringify(projects));
 
-    /* ===============================
-       STORE FULL TEXT (PROJECT-SCOPED)
-    =============================== */
     localStorage.setItem(
       "fullText_" + currentProjectId,
       data.fullText
     );
 
     result.innerText = "✅ PDF uploaded successfully!";
-  } catch (error) {
+  }
+  catch(error){
     console.error(error);
     result.innerText = "❌ Upload failed.";
+  }
+}
+</script>
+
+<button id="chatToggle">💬</button>
+
+<div id="chatBox">
+  <div id="chatHeader">AI Study Assistant</div>
+  <div id="chatMessages"></div>
+  <div id="chatInputArea">
+    <input id="chatInput" placeholder="Ask something..." />
+    <button id="chatSend">Send</button>
+  </div>
+</div>
+
+<script>
+const projectId = localStorage.getItem("currentProjectId");
+const FULLTEXT_KEY = `fullText_${projectId}`;
+
+const chatToggle = document.getElementById("chatToggle");
+const chatBox = document.getElementById("chatBox");
+const chatMessages = document.getElementById("chatMessages");
+const chatInput = document.getElementById("chatInput");
+const chatSend = document.getElementById("chatSend");
+
+chatToggle.onclick = () => {
+  chatBox.style.display =
+    chatBox.style.display === "flex" ? "none" : "flex";
+};
+
+chatSend.onclick = sendMessage;
+chatInput.addEventListener("keypress", e => {
+  if(e.key === "Enter") sendMessage();
+});
+
+function addMessage(text,type){
+  const div = document.createElement("div");
+  div.className = "chatMsg " + type;
+  div.innerText = text;
+  chatMessages.appendChild(div);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+async function sendMessage(){
+  const message = chatInput.value.trim();
+  if(!message) return;
+
+  addMessage(message,"userMsg");
+  chatInput.value="";
+
+  const fullText = localStorage.getItem(FULLTEXT_KEY) || "";
+
+  try{
+    const res = await fetch("http://localhost:3000/chat",{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify({ message, text:fullText })
+    });
+
+    const data = await res.json();
+    addMessage(data.reply,"botMsg");
+  }
+  catch{
+    addMessage("Error connecting to AI.","botMsg");
   }
 }
 </script>

@@ -2,159 +2,283 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Flashcards</title>
+<title>Flashcards · Learn Flow</title>
 
 <style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: "Segoe UI", sans-serif;
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:"Inter","Segoe UI",sans-serif;
 }
 
-body { background: #f4f6fb; }
+body{
+  background: radial-gradient(circle at top left, #1e1b4b, #0f172a 60%);
+  color:#e2e8f0;
+  min-height:100vh;
+}
 
 /* ===== SIDEBAR ===== */
-.sidebar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 240px;
-  height: 100vh;
-  background: linear-gradient(180deg, #5b6cff, #7a5cff);
-  padding: 20px;
-  color: white;
+.sidebar{
+  position:fixed;
+  top:0;
+  left:0;
+  width:250px;
+  height:100vh;
+  background:linear-gradient(180deg,#111827,#1f2937);
+  padding:30px 20px;
+  border-right:1px solid rgba(255,255,255,0.05);
 }
 
-.sidebar a {
-  display: block;
-  color: white;
-  text-decoration: none;
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 10px;
+/* ===== LOGO ===== */
+.sidebar h2{
+  margin-bottom:40px;
+  font-weight:700;
+  font-size:22px;
 }
 
-.sidebar a:hover { background: rgba(255,255,255,0.2); }
+.sidebar h2 a{
+  text-decoration:none;
+  background:linear-gradient(90deg,#818cf8,#c084fc);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  transition:0.3s ease;
+}
+
+/* Hover effect for logo */
+.sidebar h2 a:hover{
+  -webkit-text-fill-color:#ffffff;
+  background:none;
+  text-shadow:0 0 12px rgba(139,92,246,0.7);
+}
+
+/* ===== NAV LINKS ===== */
+.sidebar a{
+  display:block;
+  color:#cbd5e1;
+  text-decoration:none;
+  padding:12px 14px;
+  border-radius:10px;
+  margin-bottom:10px;
+  transition:0.2s ease;
+}
+
+.sidebar a:hover{
+  background:rgba(99,102,241,0.2);
+  color:white;
+  transform:translateX(4px);
+}
 
 /* ===== MAIN ===== */
-.main {
-  margin-left: 240px;
-  padding: 40px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.main{
+  margin-left:250px;
+  padding:60px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
 }
 
-h2 { margin-bottom: 20px; }
+.main h2{
+  font-size:28px;
+  margin-bottom:40px;
+}
 
 /* ===== FLASHCARD ===== */
-.card-container { perspective: 1000px; }
+.card-container{ perspective:1200px; }
 
-.flashcard {
-  width: 380px;
-  height: 220px;
-  position: relative;
-  transform-style: preserve-3d;
-  transition: transform 0.6s, opacity 0.2s;
-  cursor: pointer;
+.flashcard{
+  width:420px;
+  height:240px;
+  position:relative;
+  transform-style:preserve-3d;
+  transition:transform 0.6s ease, opacity 0.2s ease;
+  cursor:pointer;
 }
 
-.flashcard.flipped { transform: rotateY(180deg); }
+.flashcard.flipped{ transform:rotateY(180deg); }
 
-.flashcard.fade {
-  opacity: 0;
-  transform: scale(0.96);
+.card-face{
+  position:absolute;
+  width:100%;
+  height:100%;
+  backface-visibility:hidden;
+  background:rgba(30,41,59,0.6);
+  backdrop-filter:blur(14px);
+  border-radius:20px;
+  border:1px solid rgba(255,255,255,0.1);
+  box-shadow:0 25px 50px rgba(0,0,0,0.6);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:30px;
+  text-align:center;
+  font-size:18px;
+  font-weight:500;
+  transition:0.3s ease;
 }
 
-.card-face {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  backface-visibility: hidden;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 25px;
-  text-align: center;
-  font-size: 18px;
-  font-weight: 600;
+.card-face:hover{
+  transform:scale(1.02);
 }
 
-.card-back {
-  transform: rotateY(180deg);
-  background: #eef2ff;
-  font-weight: normal;
+.card-back{
+  transform:rotateY(180deg);
+  background:rgba(79,70,229,0.2);
 }
 
 /* ===== CONTROLS ===== */
-.controls {
-  margin-top: 30px;
-  display: flex;
-  align-items: center;
-  gap: 20px;
+.controls{
+  margin-top:40px;
+  display:flex;
+  align-items:center;
+  gap:25px;
 }
 
-.arrow {
-  font-size: 24px;
-  background: #4f46e5;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 48px;
-  height: 48px;
-  cursor: pointer;
+.arrow{
+  font-size:20px;
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  color:white;
+  border:none;
+  border-radius:50%;
+  width:55px;
+  height:55px;
+  cursor:pointer;
+  transition:0.2s ease;
 }
 
-.arrow:hover { background: #4338ca; }
-.arrow:disabled { background: #a5b4fc; cursor: not-allowed; }
-
-.progress { font-size: 14px; color: #555; }
-
-/* ===== DIFFICULTY ===== */
-.difficulty {
-  margin-top: 20px;
-  display: flex;
-  gap: 12px;
+.arrow:hover{
+  transform:scale(1.1);
+  box-shadow:0 10px 30px rgba(139,92,246,0.5);
 }
 
-.diff-btn {
-  padding: 10px 18px;
-  border: none;
-  border-radius: 20px;
-  color: white;
-  cursor: pointer;
+.progress{
+  font-size:14px;
+  color:#94a3b8;
 }
 
-.easy { background: #22c55e; }
-.medium { background: #f59e0b; }
-.hard { background: #ef4444; }
+/* ===== DIFFICULTY BUTTONS ===== */
+.difficulty{
+  margin-top:30px;
+  display:flex;
+  gap:15px;
+}
 
-.loading {
-  margin-top: 14px;
-  font-size: 14px;
-  color: #4f46e5;
-  display: none;
+.diff-btn{
+  padding:10px 22px;
+  border:none;
+  border-radius:30px;
+  cursor:pointer;
+  font-weight:500;
+  transition:0.2s ease;
+}
+
+.easy{ background:#22c55e; color:white; }
+.medium{ background:#f59e0b; color:white; }
+.hard{ background:#ef4444; color:white; }
+
+.diff-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 20px rgba(0,0,0,0.4);
+}
+
+/* ===== LOADING ===== */
+.loading{
+  margin-top:20px;
+  font-size:14px;
+  color:#a5b4fc;
+  display:none;
+}
+
+/* ===== CHATBOT ===== */
+#chatToggle{
+  position:fixed;
+  bottom:25px;
+  right:25px;
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  color:white;
+  border:none;
+  border-radius:50%;
+  width:65px;
+  height:65px;
+  font-size:24px;
+  cursor:pointer;
+  box-shadow:0 15px 35px rgba(99,102,241,0.5);
+  transition:0.3s ease;
+  z-index:9999;
+}
+
+#chatToggle:hover{ transform:scale(1.1); }
+
+#chatBox{
+  position:fixed;
+  bottom:100px;
+  right:25px;
+  width:340px;
+  height:440px;
+  background:#0f172a;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,0.1);
+  display:none;
+  flex-direction:column;
+  overflow:hidden;
+  z-index:9999;
+}
+
+#chatHeader{
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  padding:14px;
+  font-weight:600;
+}
+
+#chatMessages{
+  flex:1;
+  padding:12px;
+  overflow-y:auto;
+  font-size:14px;
+}
+
+.chatMsg{ margin-bottom:10px; }
+.userMsg{ text-align:right; color:#a5b4fc; }
+.botMsg{ text-align:left; color:#e2e8f0; }
+
+#chatInputArea{
+  display:flex;
+  border-top:1px solid rgba(255,255,255,0.08);
+}
+
+#chatInput{
+  flex:1;
+  padding:10px;
+  border:none;
+  outline:none;
+  background:#1e293b;
+  color:white;
+}
+
+#chatSend{
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  border:none;
+  padding:10px 16px;
+  cursor:pointer;
 }
 </style>
 </head>
 
 <body>
 
-<!-- ===== PROJECT GUARD ===== -->
 <script>
 const projectId = localStorage.getItem("currentProjectId");
-if (!projectId) {
+if(!projectId){
   alert("No project selected. Redirecting to Home.");
-  window.location.href = "home.html";
+  window.location.href="home.html";
 }
 </script>
 
 <div class="sidebar">
-  <a href="home.html"><h2>Learn Flow</h2></a>
+  <h2>
+  <a href="home.html" style="color:inherit; text-decoration:none;">
+     Learn Flow
+  </a></h2>
   <a href="index.html">Dashboard</a>
   <a href="upload.html">Upload Notes</a>
   <a href="flashcards.html">Flashcards</a>
@@ -188,116 +312,160 @@ if (!projectId) {
   <div class="loading" id="loading">Generating more flashcards…</div>
 </div>
 
-<script>
-/* ===============================
-   LOAD PROJECT FLASHCARDS
-=============================== */
-let allFlashcards = JSON.parse(localStorage.getItem("flashcards")) || [];
+<button id="chatToggle">💬</button>
 
+<div id="chatBox">
+  <div id="chatHeader">AI Study Assistant</div>
+  <div id="chatMessages"></div>
+  <div id="chatInputArea">
+    <input id="chatInput" placeholder="Ask something..." />
+    <button id="chatSend">Send</button>
+  </div>
+</div>
+
+<script>
+let allFlashcards = JSON.parse(localStorage.getItem("flashcards")) || [];
 let flashcards = allFlashcards
   .filter(f => f.projectId === projectId)
-  .map(f => ({ q: f.question, a: f.answer }));
+  .map(f => ({ q:f.question, a:f.answer }));
 
-const fullText = localStorage.getItem("fullText_" + projectId) || "";
+const fullText = localStorage.getItem("fullText_"+projectId)||"";
 
-if (!flashcards.length) {
-  flashcards = [{ q: "No flashcards yet", a: "Upload notes first." }];
+if(!flashcards.length){
+  flashcards=[{ q:"No flashcards yet", a:"Upload notes first." }];
 }
 
-let current = 0;
+let current=0;
 
-const card = document.getElementById("flashcard");
-const question = document.getElementById("question");
-const answer = document.getElementById("answer");
-const progress = document.getElementById("progress");
-const loadingText = document.getElementById("loading");
+const card=document.getElementById("flashcard");
+const question=document.getElementById("question");
+const answer=document.getElementById("answer");
+const progress=document.getElementById("progress");
+const loadingText=document.getElementById("loading");
 
-/* ===============================
-   CARD LOGIC
-=============================== */
-function updateCard() {
-  card.classList.add("fade");
-  setTimeout(() => {
-    question.innerText = flashcards[current].q;
-    answer.innerText = flashcards[current].a;
-    progress.innerText = `${current + 1} / ${flashcards.length}`;
-    card.classList.remove("flipped", "fade");
-  }, 120);
+function updateCard(){
+  question.innerText=flashcards[current].q;
+  answer.innerText=flashcards[current].a;
+  progress.innerText=`${current+1} / ${flashcards.length}`;
+  card.classList.remove("flipped");
 }
 
-function flipCard() { card.classList.toggle("flipped"); }
-function nextCard() { if (current < flashcards.length - 1) { current++; updateCard(); } }
-function prevCard() { if (current > 0) { current--; updateCard(); } }
+function flipCard(){ card.classList.toggle("flipped"); }
+function nextCard(){ if(current<flashcards.length-1){ current++; updateCard(); } }
+function prevCard(){ if(current>0){ current--; updateCard(); } }
 
-/* ===============================
-   ADD TASK (PROJECT-SAFE)
-=============================== */
-function addTask(level) {
-  let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
-  const c = flashcards[current];
+function addTask(level){
+  let tasks=JSON.parse(localStorage.getItem("tasks"))||[];
+  const c=flashcards[current];
 
-  const exists = tasks.some(
-    t => t.question === c.q && t.difficulty === level && t.projectId === projectId
+  const exists=tasks.some(
+    t=>t.question===c.q && t.difficulty===level && t.projectId===projectId
   );
 
-  if (!exists) {
+  if(!exists){
     tasks.push({
-      id: Date.now(),
+      id:Date.now(),
       projectId,
-      question: c.q,
-      answer: c.a,
-      difficulty: level,
-      status: "pending"
+      question:c.q,
+      answer:c.a,
+      difficulty:level,
+      status:"pending"
     });
-    localStorage.setItem("tasks", JSON.stringify(tasks));
+    localStorage.setItem("tasks",JSON.stringify(tasks));
   }
 
   nextCard();
 }
 
-/* ===============================
-   LOAD MORE FLASHCARDS
-=============================== */
-async function loadMore() {
-  loadingText.style.display = "block";
-
-  try {
-    const res = await fetch("http://localhost:3000/more-flashcards", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        text: fullText,
-        existingFlashcards: flashcards.map(c => ({
-          question: c.q,
-          answer: c.a
+async function loadMore(){
+  loadingText.style.display="block";
+  try{
+    const res=await fetch("http://localhost:3000/more-flashcards",{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify({
+        text:fullText,
+        existingFlashcards:flashcards.map(c=>({
+          question:c.q,
+          answer:c.a
         }))
       })
     });
 
-    const data = await res.json();
+    const data=await res.json();
 
-    const newOnes = data.flashcards.map(fc => ({
-      question: fc.question,
-      answer: fc.answer,
+    const newOnes=data.flashcards.map(fc=>({
+      question:fc.question,
+      answer:fc.answer,
       projectId
     }));
 
-    allFlashcards = allFlashcards.concat(newOnes);
-    localStorage.setItem("flashcards", JSON.stringify(allFlashcards));
+    allFlashcards=allFlashcards.concat(newOnes);
+    localStorage.setItem("flashcards",JSON.stringify(allFlashcards));
 
-    flashcards = flashcards.concat(
-      newOnes.map(f => ({ q: f.question, a: f.answer }))
+    flashcards=flashcards.concat(
+      newOnes.map(f=>({ q:f.question, a:f.answer }))
     );
 
     updateCard();
-  } catch {
+  }catch{
     alert("Failed to generate flashcards.");
-  } finally {
-    loadingText.style.display = "none";
+  }finally{
+    loadingText.style.display="none";
   }
 }
 
 updateCard();
+
+/* ===== CHATBOT ===== */
+const FULLTEXT_KEY=`fullText_${projectId}`;
+
+const chatToggle=document.getElementById("chatToggle");
+const chatBox=document.getElementById("chatBox");
+const chatMessages=document.getElementById("chatMessages");
+const chatInput=document.getElementById("chatInput");
+const chatSend=document.getElementById("chatSend");
+
+chatToggle.onclick=()=>{
+  chatBox.style.display=
+    chatBox.style.display==="flex"?"none":"flex";
+};
+
+chatSend.onclick=sendMessage;
+chatInput.addEventListener("keypress",e=>{
+  if(e.key==="Enter") sendMessage();
+});
+
+function addMessage(text,type){
+  const div=document.createElement("div");
+  div.className="chatMsg "+type;
+  div.innerText=text;
+  chatMessages.appendChild(div);
+  chatMessages.scrollTop=chatMessages.scrollHeight;
+}
+
+async function sendMessage(){
+  const message=chatInput.value.trim();
+  if(!message) return;
+
+  addMessage(message,"userMsg");
+  chatInput.value="";
+
+  const fullText=localStorage.getItem(FULLTEXT_KEY)||"";
+
+  try{
+    const res=await fetch("http://localhost:3000/chat",{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify({ message,text:fullText })
+    });
+
+    const data=await res.json();
+    addMessage(data.reply,"botMsg");
+  }catch{
+    addMessage("Error connecting to AI.","botMsg");
+  }
+}
 </script>
 
 </body>
